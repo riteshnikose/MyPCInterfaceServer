@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.ServerSocket;
@@ -20,31 +21,22 @@ public class Server {
 		System.out.println("Cilent Connection Message "+message);
 		 
 		if (message != null){
-			PrintStream ps = new PrintStream(scoket.getOutputStream());
-			//String output = executeCommand("ls");
-			//System.out.println("Client output \n :"+output);
-			//ps.println(output);
-			ps.println("Welcome..! Please your Enter command...");
-			
+			String intialOut ="Welcome..! Please Enter command...";
+			byte[] outByteArry = intialOut.getBytes();
+			DataOutputStream dOut = new DataOutputStream(scoket.getOutputStream());
+
+			dOut.writeInt(outByteArry.length); // write length of the message
+			dOut.write(outByteArry);           // write the message
 			while(true){
 				// Server command receiver
 				String command = br.readLine();
 				if (command != null){
-					
 					System.out.println("Client Command recive :"+command);
 					String output = executeCommand(command);
 					System.out.println("Client output \n :"+output);
-					
-					// SERVER sender
-					//System.out.print("Enter String\n");
-					//BufferedReader bufferReader = new BufferedReader(new InputStreamReader(System.in));
-		            //String s = bufferReader.readLine();
-					//ps.println(s);
-					
-					ps.println(output);
-				}
-				else{
-					break;
+					byte[] outPutMessage = output.getBytes();
+					dOut.writeInt(outPutMessage.length); // write length of the message
+					dOut.write(outPutMessage);  // write the message
 				}
 			}
 		}
@@ -53,17 +45,13 @@ public class Server {
 	
 	
 	private String executeCommand(String command) {
-
 		StringBuffer output = new StringBuffer();
-
 		Process p;
 		try {
 			p = Runtime.getRuntime().exec(command);
 			p.waitFor();
-			BufferedReader reader = 
-                            new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-                        String line = "";			
+			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line = "";			
 			while ((line = reader.readLine())!= null) {
 				output.append(line + "\n");
 			}
